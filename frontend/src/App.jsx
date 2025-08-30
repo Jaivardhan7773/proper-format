@@ -6,12 +6,12 @@ import { useAuthStore } from './store/auth/useAuthStore'
 function App() {
 
   const { authUser, isCheckingAuth } = useAuthStore()
-  
+
 
   return (
     <>
       <div className="h-full bg-gray-900">
-        {/* <Navbar /> */}
+        <Navbar />
         <AppRouter />
       </div>
     </>
