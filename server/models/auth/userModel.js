@@ -13,9 +13,12 @@ const uesrSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
+    },
+    refreshToken: {
+        type: String,
     }
-}, { versionKey: false, timeseries: true });
+}, { versionKey: false, timestamps: true });
 
-const User = mongoose.model("users" , uesrSchema);
+const User = mongoose.model("users", uesrSchema);
 
 export default User;
