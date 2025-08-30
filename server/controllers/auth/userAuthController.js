@@ -31,7 +31,6 @@ export const registerUesr = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            message: "User registered successfully",
         });
 
 
@@ -56,9 +55,6 @@ export const registerUesr = async (req, res) => {
             secure: process.env.NODE_ENV !== "DEVELOPMENT",
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
 
         res.status(201).json({
             _id: user._id,
@@ -90,7 +86,7 @@ export const loginUser = async (req, res) => {
 
         const isMatch = await bcrypt.compare(password, findUser.password);
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid password" });
+            return res.status(400).json({ message: "Incorrect password" });
         }
 
 
@@ -103,14 +99,14 @@ export const loginUser = async (req, res) => {
         await findUser.save();
 
         // Send tokens as cookies
-        res.cookie("accessToken", accessToken, {
+        res.cookie("accesstoken", accessToken, {
             httpOnly: true,
             sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
             secure: process.env.NODE_ENV !== "DEVELOPMENT",
             maxAge: 15 * 60 * 1000, // 15 min
         });
 
-        res.cookie("refreshToken", refreshToken, {
+        res.cookie("refreshtoken", refreshToken, {
             httpOnly: true,
             sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
             secure: process.env.NODE_ENV !== "DEVELOPMENT",
@@ -129,20 +125,20 @@ export const loginUser = async (req, res) => {
 }
 
 export const refreshedToken = async (req, res) => {
-    const { refreshedToken } = req.cookies;
+    const { refreshtoken } = req.cookies;
 
 
-    if (!refreshedToken) {
+    if (!refreshtoken) {
         return res.status(401).json({ message: "no refresh token provided" });
     }
 
     try {
 
-        const decoded = jwt.verify(refreshedToken, process.env.JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
 
         const user = await User.findById(decoded.userId)
 
-        if (!user || user.refreshToken !== refreshedToken) {
+        if (!user || user.refreshToken !== refreshtoken) {
             return res.status(403).json({ message: "Invalid refresh token" })
         }
 
@@ -162,26 +158,40 @@ export const refreshedToken = async (req, res) => {
 }
 
 export const logoutUser = async (req, res) => {
-    const { refreshtoken  } = req.cookies;
-    console.log("Cookies received:", req.cookies);
 
+    const { refreshtoken } = req.cookies;
+let result = null;
+    // console.log("Cookies on logout:", req.cookies);
 
-    console.log("req came")
     if (refreshtoken) {
         try {
             const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
-            console.log(decoded);
-            await User.findByIdAndUpdate(decoded._id || decoded.id || decoded.userId, { $unset: { refreshToken: "" } });
-    console.log("refreshToken deleted")
-            
+
+            const userId = decoded.userId || decoded._id || decoded.id;
+
+            if (userId) {
+                result = await User.findByIdAndUpdate(userId, { $unset: { refreshToken: "" } });
+            } else {
+                console.log("User ID not found in token payload");
+            }
+
         } catch (error) {
-            return res.status(500).json({ message: "invalid refresh token" });
+            console.error("Error verifying token:", error);
+            return res.status(401).json({ message: "Invalid refresh token" });
         }
     }
-    console.log("ended")
 
-    res.clearCookie("accesstoken");
-    res.clearCookie("refreshtoken");
+    res.clearCookie("accesstoken", {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+        secure: process.env.NODE_ENV !== "DEVELOPMENT",
+    });
 
-    res.status(200).json({ message: "logged out successfully" });
+    res.clearCookie("refreshtoken", {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+        secure: process.env.NODE_ENV !== "DEVELOPMENT",
+    });
+
+    res.status(200).json({ message: `email ${result?.email || ""} logged out successfully` });
 }
