@@ -2,8 +2,11 @@ import { useState } from 'react'
 import AppRouter from './routes/AppRouter'
 import Navbar from './pages/nav/Navbar'
 import './index.css'
+import { useAuthStore } from './store/auth/useAuthStore'
 function App() {
-  const [count, setCount] = useState(0)
+
+  const { authUser, isCheckingAuth } = useAuthStore()
+  
 
   return (
     <>

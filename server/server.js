@@ -8,8 +8,10 @@ import userRoute from "./routes/auth/userRoute.js"
 dotenv.config();
 connectDB();
 
-const app = express()
+const app = express();
 app.use(express.json());
+
+
 // app.use(cookieParser());
 // app.use(cors({
 //     origin:"http://localhost:5173",
