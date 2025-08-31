@@ -4,9 +4,15 @@ import AppRouter from './routes/AppRouter'
 import Navbar from './pages/nav/Navbar'
 import './index.css'
 import { useAuthStore } from './store/auth/useAuthStore'
+import { useEffect } from "react";
 function App() {
 
-  const { user } = useAuthStore()
+  const { user , checkAuth } = useAuthStore()
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+  
 
 
   return (
