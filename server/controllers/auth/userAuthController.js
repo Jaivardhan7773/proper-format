@@ -160,7 +160,7 @@ export const refreshedToken = async (req, res) => {
 export const logoutUser = async (req, res) => {
 
     const { refreshtoken } = req.cookies;
-let result = null;
+    let result = null;
     // console.log("Cookies on logout:", req.cookies);
 
     if (refreshtoken) {
@@ -194,4 +194,23 @@ let result = null;
     });
 
     res.status(200).json({ message: `email ${result?.email || ""} logged out successfully` });
+}
+
+export const checkAuth = async (req, res) => {
+
+    const accessToken = req.cookies.accesstoken;
+
+    if (!accessToken) return res.status(401).json({ message: "Not logged in" });
+
+    try {
+        const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+        const user = await User.findById(decoded.userId);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        res.status(200).json({ _id: user._id, name: user.name, email: user.email });
+    } catch (err) {
+        res.status(401).json({ message: "Invalid or expired access token" });
+    }
+
+
 }
