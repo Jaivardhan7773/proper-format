@@ -10,7 +10,7 @@ function App() {
   const { user , checkAuth } = useAuthStore()
 
   useEffect(() => {
-    checkAuth()
+    checkAuth();
   }, [])
   
 
