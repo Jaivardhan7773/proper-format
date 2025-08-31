@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuthStore } from "../../store/auth/useAuthStore";
 
 const Navbar = () => {
   const [openProfile, setOpenProfile] = useState(false);
   const [open , setOpen] = useState(false);
+const {user , logout} =  useAuthStore()
 
   return (
 
@@ -136,7 +138,7 @@ const Navbar = () => {
                     href="#"
                     className="block px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"
                   >
-                    Your profile
+                    {user?.name || "wtf"}
                   </a>
                   <a
                     href="#"
@@ -144,12 +146,12 @@ const Navbar = () => {
                   >
                     Settings
                   </a>
-                  <a
-                    href="#"
+                  <button
+                    onClick={logout}
                     className="block px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"
                   >
                     Sign out
-                  </a>
+                  </button>
                 </div>
               )}
             </div>

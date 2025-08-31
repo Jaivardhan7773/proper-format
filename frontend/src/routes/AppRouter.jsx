@@ -4,16 +4,18 @@ import Login from '../pages/auth/Login';
 import Home from '../pages/landing/Home'
 import Portfolio from '../pages/landing/Portfolio';
 import Blog from '../pages/landing/Blog';
+import { useAuthStore } from '../store/auth/useAuthStore';
 
 
 const AppRouter = () => {
+    const { user } = useAuthStore()
     return (
         <Routes>
-            <Route path='/' element={<Home />} />
+            <Route path='/' element={user ? <Home /> : <Login />} />
             <Route path='/signup' element={<SignUp />} />
             <Route path='/login' element={<Login />} />
-            <Route path='/portfolio' element={<Portfolio/>}/>
-            <Route path='/blog' element={<Blog/>}/>
+            <Route path='/portfolio' element={<Portfolio />} />
+            <Route path='/blog' element={<Blog />} />
 
         </Routes>
     )
