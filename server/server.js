@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 import { connectDB } from "./config/db.js";
 import userRoute from "./routes/auth/userRoute.js"
+import AdminRoute from "./routes/other/AdminRoute.js"
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/api', userRoute)
+app.use('/api' , AdminRoute)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => console.log(`server is running of ${PORT}`))

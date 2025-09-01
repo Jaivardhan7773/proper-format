@@ -4,8 +4,8 @@ import { useAuthStore } from "../../store/auth/useAuthStore";
 
 const Navbar = () => {
   const [openProfile, setOpenProfile] = useState(false);
-  const [open , setOpen] = useState(false);
-const {user , logout} =  useAuthStore()
+  const [open, setOpen] = useState(false);
+  const { user, logout } = useAuthStore()
 
   return (
 
@@ -68,19 +68,19 @@ const {user , logout} =  useAuthStore()
 
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
-                <a
-                  href="#"
+                <Link
+                  to={'/'}
                   aria-current="page"
                   className="rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white"
                 >
                   Dashboard
-                </a>
-                <a
-                  href="#"
+                </Link>
+                <Link
+                  to={"/team"}
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white"
                 >
                   Team
-                </a>
+                </Link>
                 <Link
                   to={'/portfolio'}
                   className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white"
