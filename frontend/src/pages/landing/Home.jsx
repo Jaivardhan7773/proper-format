@@ -15,7 +15,7 @@ const Home = () => {
                 </section>
 
                 {/* Features Section */}
-                <section className="py-20 px-6 max-w-7xl mx-auto">
+                <section className="py-20 px-6 max-w-7xl mx-auto text-amber-50">
                     <h2 className="text-4xl font-bold mb-12 text-center">Features You'll Love</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                         <div className="p-6 shadow-lg rounded-xl hover:shadow-2xl transition">
@@ -34,7 +34,7 @@ const Home = () => {
                 </section>
 
                 {/* About Section */}
-                <section className="bg-gray-100 py-20 px-6 max-w-5xl mx-auto rounded-lg shadow-lg">
+                <section className="bg-gradient-to-l from-violet-500 to-blue-500 py-20 px-6  mx-5 rounded-lg shadow-lg">
                     <h2 className="text-4xl font-bold mb-6 text-center">About This Demo</h2>
                     <p className="text-lg leading-relaxed mb-4">
                         This demo landing page is built with modern React using Vite bundler and styled using Tailwind CSS. It showcases how to structure sections for a powerful frontend experience with minimal code.
@@ -46,7 +46,7 @@ const Home = () => {
 
                 
                 <section className="py-20 px-6 max-w-6xl mx-auto">
-                    <h2 className="text-4xl font-bold mb-12 text-center">What People Are Saying</h2>
+                    <h2 className="text-4xl font-bold text-amber-50 mb-12 text-center">What People Are Saying</h2>
                     <div className="grid gap-12 md:grid-cols-3">
                         <div className="border border-gray-300 rounded-lg p-8 shadow-sm hover:shadow-lg transition">
                             <p className="italic mb-4 text-amber-50">"This toolset transformed our web app development cycle and improved delivery by leaps!"</p>
@@ -67,14 +67,14 @@ const Home = () => {
                 </section>
 
                 {/* CTA Section */}
-                <section className="bg-blue-700 text-white py-20 px-6 text-center">
+                <section className="bg-gradient-to-r from-blue-600 to-violet-500 text-white py-20 px-6 text-center">
                     <h2 className="text-4xl font-bold mb-6">Ready to build your app?</h2>
-                    <button className="bg-white cursor-pointer text-blue-700 px-8 py-4 rounded-full text-xl font-semibold hover:bg-gray-200 transition">Start Your Journey</button>
+                    <button className="bg-white cursor-pointer text-blue-700 px-8 py-4 rounded-full text-xl font-semibold hover:bg-amber-100 transition-colors">Start Your Journey</button>
                 </section>
 
                 {/* Footer */}
-                <footer className="bg-gray-800 text-gray-200 text-center py-8">
-                    <p>© 2025 Your Company Name. All rights reserved.</p>
+                <footer className="bg-gray-950 text-gray-200 text-center py-1">
+                    <p>© 2025 Jaivardhan singh All rights reserved</p>
                 </footer>
             </div>
         </>

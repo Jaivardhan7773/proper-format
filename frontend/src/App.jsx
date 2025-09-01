@@ -5,23 +5,29 @@ import Navbar from './pages/nav/Navbar'
 import './index.css'
 import { useAuthStore } from './store/auth/useAuthStore'
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 function App() {
 
-  const { user , checkAuth } = useAuthStore()
+  const { checkAuth } = useAuthStore();
+
 
   useEffect(() => {
     checkAuth();
-  }, [])
-  
+  }, [checkAuth])
+
 
 
   return (
     <>
-    <ToastContainer position="top-right" autoClose={3000} />
+
+
+      <ToastContainer position="top-right" autoClose={3000} />
       <div className="h-full bg-gray-900">
         <Navbar />
         <AppRouter />
       </div>
+
+
     </>
   )
 }
