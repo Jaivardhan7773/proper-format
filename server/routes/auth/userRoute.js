@@ -6,7 +6,7 @@ const router = express.Router()
 
 router.post('/signup', registerValidation, registerUesr);
 router.post('/login', loginValidation, loginUser);
-router.post('/refresh', refreshedToken)
+router.post('/refresh', refreshedToken);
 router.post('/logout', logoutUser);
 router.get('/check', checkAuth);
 
