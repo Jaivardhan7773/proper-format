@@ -6,6 +6,7 @@ import Portfolio from '../pages/landing/Portfolio';
 import Blog from '../pages/landing/Blog';
 import { useAuthStore } from '../store/auth/useAuthStore';
 import Team from '../pages/landing/Team';
+import Shop from '../pages/landing/Shop';
 
 
 const AppRouter = () => {
@@ -18,6 +19,7 @@ const AppRouter = () => {
             <Route path='/portfolio' element={<Portfolio />} />
             <Route path='/blog' element={<Blog />} />
             <Route path='/team' element={<Team />} />
+            <Route path='/shop' element={<Shop />} />
 
         </Routes>
     )

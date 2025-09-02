@@ -8,14 +8,14 @@ const Home = () => {
             <div className="font-sans text-gray-900">
 
                 {/* Hero Section */}
-                <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-20 px-6 text-center">
+                <section className="bg-gradient-to-r from-blue-800 to-indigo-950 text-white py-20 px-6 text-center">
                     <h1 className="text-5xl font-bold mb-4">Welcome to Your Next Big Project</h1>
-                    <p className="text-xl max-w-3xl mx-auto mb-8">Build beautiful, blazing-fast apps with modern tools and a great developer experience.</p>
+                    <p className="text-xl max-w-3xl mx-auto mb-8 ">Build beautiful, blazing-fast apps with modern tools and a great developer experience.</p>
                     <button className="bg-white text-blue-700 rounded-lg px-6 py-3 font-semibold hover:bg-gray-100 transition cursor-pointer">Get Started</button>
                 </section>
 
                 {/* Features Section */}
-                <section className="py-20 px-6 max-w-7xl mx-auto text-amber-50">
+                <section className="py-20 px-6 mx-5 bg-gradient-to-r from-emerald-900 to-emerald-500 rounded-lg my-5 text-amber-50">
                     <h2 className="text-4xl font-bold mb-12 text-center">Features You'll Love</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
                         <div className="p-6 shadow-lg rounded-xl hover:shadow-2xl transition">
@@ -44,7 +44,7 @@ const Home = () => {
                     </p>
                 </section>
 
-                
+
                 <section className="py-20 px-6 max-w-6xl mx-auto">
                     <h2 className="text-4xl font-bold text-amber-50 mb-12 text-center">What People Are Saying</h2>
                     <div className="grid gap-12 md:grid-cols-3">

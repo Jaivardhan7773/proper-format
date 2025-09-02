@@ -16,7 +16,7 @@ export const useAuthMiddleware = (req, res, next) => {
                 message: "Invalid token"
             })
         }
-        console.log("User has passed userAuthMiddleware.js")
+        // console.log("User has passed userAuthMiddleware.js")
         next();
     } catch (error) {
         res.status(400).json({ message: "Error in userAuthMiddleware.js" })
