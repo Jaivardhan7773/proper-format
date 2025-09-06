@@ -1,3 +1,4 @@
+import Button from "../../components/Button"
 
 const Home = () => {
 
@@ -48,17 +49,17 @@ const Home = () => {
                 <section className="py-20 px-6 max-w-6xl mx-auto">
                     <h2 className="text-4xl font-bold text-amber-50 mb-12 text-center">What People Are Saying</h2>
                     <div className="grid gap-12 md:grid-cols-3">
-                        <div className="border border-gray-300 rounded-lg p-8 shadow-sm hover:shadow-lg transition">
+                        <div className="border border-gray-300 rounded-lg p-8 shadow-amber-600 shadow-lg hover:shadow-xl transition">
                             <p className="italic mb-4 text-amber-50">"This toolset transformed our web app development cycle and improved delivery by leaps!"</p>
                             <h4 className="font-semibold text-amber-50">Alexa R.</h4>
                             <span className=" text-amber-50">Frontend Developer</span>
                         </div>
-                        <div className="border border-gray-300 rounded-lg p-8 shadow-sm hover:shadow-lg transition">
+                        <div className="border border-gray-300 rounded-lg p-8 shadow-amber-600 shadow-lg hover:shadow-xl transition">
                             <p className="italic mb-4 text-amber-50">"Tailwind + Vite = Perfect for rapid prototyping and scalable solutions."</p>
                             <h4 className="font-semibold text-amber-50">John M.</h4>
                             <span className="text-amber-50">Fullstack Engineer</span>
                         </div>
-                        <div className="border border-gray-300 rounded-lg p-8 shadow-sm hover:shadow-lg transition">
+                        <div className="border border-gray-300 rounded-lg p-8 shadow-amber-600 shadow-lg hover:shadow-xl transition">
                             <p className="italic mb-4 text-amber-50">"I love the blazing fast builds and the modular CSS approach."</p>
                             <h4 className="font-semibold text-amber-50">Samantha L.</h4>
                             <span className="text-amber-50">Product Manager</span>
@@ -69,13 +70,54 @@ const Home = () => {
                 {/* CTA Section */}
                 <section className="bg-gradient-to-r from-blue-600 to-violet-500 text-white py-20 px-6 text-center">
                     <h2 className="text-4xl font-bold mb-6">Ready to build your app?</h2>
-                    <button className="bg-white cursor-pointer text-blue-700 px-8 py-4 rounded-full text-xl font-semibold hover:bg-amber-100 transition-colors">Start Your Journey</button>
+                    <button className="bg-white cursor-pointer text-blue-700 px-8 py-4 rounded-full text-xl font-semibold hover:bg-amber-100   shadow-lg hover:shadow-2xl transition">Start Your Journey</button>
                 </section>
 
                 {/* Footer */}
                 <footer className="bg-gray-950 text-gray-200 text-center py-1">
                     <p>© 2025 Jaivardhan singh All rights reserved</p>
                 </footer>
+            </div>
+
+
+            <div className="p-6 space-y-6">
+                <h1 className="text-xl font-bold text-white">Button Showcase 🚀</h1>
+
+                {/* Variants */}
+                <div className="space-x-4">
+                    <Button>Primary</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="danger">Danger</Button>
+                </div>
+
+                {/* Sizes */}
+                <div className="space-x-4">
+                    <Button size="sm">Small</Button>
+                    <Button size="md">Medium</Button>
+                    <Button size="lg">Large</Button>
+                </div>
+
+                {/* Disabled */}
+                <div className="space-x-4">
+                    <Button disabled>Disabled Primary</Button>
+                    <Button variant="secondary" disabled>
+                        Disabled Secondary
+                    </Button>
+                    <Button variant="danger" disabled>
+                        Disabled Danger
+                    </Button>
+                </div>
+
+                {/* Loading */}
+                <div className="space-x-4">
+                    <Button loading>Loading Primary</Button>
+                    <Button variant="secondary" loading>
+                        Loading Secondary
+                    </Button>
+                    <Button variant="danger" loading>
+                        Loading Danger
+                    </Button>
+                </div>
             </div>
         </>
     )
