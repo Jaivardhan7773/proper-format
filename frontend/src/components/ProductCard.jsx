@@ -45,8 +45,7 @@ export default function ProductCard({ product }) {
       {/* Price Section */}
       <div className="mt-2">
         <span className="text-lg font-bold text-gray-900">
-          ₹{product.price}
-        </span>
+         </span>
         <span className="text-sm text-gray-500 line-through ml-2">
           ₹{product.mrp}
         </span>
@@ -54,6 +53,8 @@ export default function ProductCard({ product }) {
           ({product.discount}% off)
         </span>
       </div>
+
+
 
       {/* Delivery Info */}
       <p className="text-xs text-gray-600 mt-1">{product.delivery}</p>
