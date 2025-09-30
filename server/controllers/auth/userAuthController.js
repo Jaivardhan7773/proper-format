@@ -4,67 +4,171 @@ import User from "../../models/auth/userModel.js";
 import { validationResult } from "express-validator";
 import { generateAccessToken, generateRefreshToken } from "../../utils/cookie.js"
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+export const googleSignIn = async (req, res) => {
+  try {
+    const { idToken } = req.body; 
+
+    if (!idToken) {
+      return res.status(400).json({ message: "Missing Google idToken." });
+    }
+
+    // Verify token with Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload(); // { sub, email, name, picture, email_verified, ... }
+    const { sub: googleId, email, name, picture, email_verified } = payload || {};
+
+    if (!email) {
+      return res.status(400).json({ message: "Google did not return an email." });
+    }
+
+    // Normalize
+    const normEmail = String(email).trim().toLowerCase();
+
+    // Find by googleId first (fast path)
+    let user = await User.findOne({ googleId });
+
+    if (!user) {
+      // Maybe user registered locally or with FB/GitHub earlier — match by email
+      user = await User.findOne({ email: normEmail });
+      if (user) {
+        // Link Google to existing account
+        if (!user.googleId) user.googleId = googleId;
+        if (!user.avatar && picture) user.avatar = picture;
+        if (email_verified) user.emailVerified = true;
+        await user.save();
+      } else {
+        // Create new Google user (no password)
+        user = await User.create({
+          name: name || "User",
+          email: normEmail,
+          googleId,
+          avatar: picture,
+          emailVerified: !!email_verified,
+        });
+      }
+    }
+
+    // Issue tokens + cookies (same style as your local flow)
+    const accesstoken = generateAccessToken(user._id);
+    const refreshtoken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshtoken;
+    await user.save();
+
+    res.cookie("accesstoken", accesstoken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshtoken", refreshtoken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } catch (err) {
+    console.error("Google sign-in error:", err);
+    return res.status(401).json({ message: "Invalid Google token." });
+  }
+};
 
 
 export const registerUesr = async (req, res) => {
+ const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array() });
+  }
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ error: errors.array() });
+  try {
+    // 2) Normalize
+    let { name, email, password } = req.body;
+    email = String(email).trim().toLowerCase();
+
+    // 3) Local signup must have a password (OAuth users won't use this endpoint)
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters." });
     }
 
-    const { name, email, password } = req.body;
+    // 4) Check if user exists
+    const existing = await User.findOne({ email });
 
-    try {
-        const findUser = await User.findOne({ email });
-
-        if (findUser) {
-            return res.status(400).json({ message: `${email} already exists` })
-        }
-        console.log(findUser)
-
-
-        const saltRound = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, saltRound);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-        });
-
-
-        const accesstoken = generateAccessToken(user._id);
-        const refreshtoken = generateRefreshToken(user._id);
-
-        user.refreshToken = refreshtoken;
-
-        await user.save();
-
-
-        res.cookie("accesstoken", accesstoken, {
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-            secure: process.env.NODE_ENV !== "DEVELOPMENT",
-            maxAge: 15 * 60 * 1000,
-        });
-
-        res.cookie("refreshtoken", refreshtoken, {
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-            secure: process.env.NODE_ENV !== "DEVELOPMENT",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
-
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-        });
-
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
+    if (existing && existing.password) {
+      // Already has a local account
+      return res.status(400).json({ message: `${email} already exists` });
     }
+
+    let user;
+
+    if (existing && !existing.password) {
+      // 5a) Edge case: user was created via Google earlier (no password). Convert to hybrid.
+      const saltRound = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, saltRound);
+
+      existing.name = name || existing.name;
+      existing.password = hashedPassword;
+      // don't touch existing.googleId/githubId/facebookId, keep them linked
+      user = await existing.save();
+    } else {
+      // 5b) Fresh local user
+      const saltRound = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, saltRound);
+
+      user = await User.create({
+        name,
+        email,
+        password: hashedPassword,
+        emailVerified: false, // local users start unverified (optional)
+      });
+    }
+
+    // 6) Issue tokens + cookies (same behavior as before)
+    const accesstoken = generateAccessToken(user._id);
+    const refreshtoken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshtoken;
+    await user.save();
+
+    res.cookie("accesstoken", accesstoken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshtoken", refreshtoken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // 7) Send minimal safe payload
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
 }
 
 export const loginUser = async (req, res) => {
