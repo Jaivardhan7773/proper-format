@@ -5,7 +5,7 @@ import { loginValidation, registerValidation } from "../../middleware/validation
 const router = express.Router()
 
 
-router.post("/auth/google", googleSignIn);
+router.post("/google", googleSignIn);
 router.post('/signup', registerValidation, registerUesr);
 router.post('/login', loginValidation, loginUser);
 router.post('/refresh', refreshedToken);

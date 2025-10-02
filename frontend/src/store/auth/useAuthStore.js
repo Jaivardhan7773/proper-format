@@ -50,6 +50,23 @@ export const useAuthStore = create((set, get) => ({
         }
     },
 
+
+    Googlelogin: async (idToken) => {
+        set({ loading: true });
+        try {
+            const res = await axiosInstance.post(`/google`, { idToken });
+            set({ user: res.data, error: null });
+            toast.success("login successfull");
+            return true;
+        } catch (err) {
+            const message = err?.response?.data?.error || err.message || 'Login failed';
+            set({ error: message, loading: false });
+            toast.error("Google error");
+            throw err;
+        }
+    },
+
+
     Signup: async (name, email, password) => {
         set({ loading: true });
         try {
@@ -86,6 +103,7 @@ export const useAuthStore = create((set, get) => ({
 
                 await axiosInstance.post('/logout')
                 set({ user: null })
+                window.location.replace("/");
                 toast.success("logout successfull");
             }
         } catch (error) {

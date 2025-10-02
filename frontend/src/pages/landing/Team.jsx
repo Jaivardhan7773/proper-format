@@ -21,8 +21,10 @@ const Team = () => {
         <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
           <thead className="bg-blue-500 text-white">
             <tr>
+              <th className="px-4 py-2 text-left">Profile</th>
               <th className="px-4 py-2 text-left">Name</th>
               <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Source</th>
               <th className="px-4 py-2 text-left">Created At</th>
               <th className="px-4 py-2 text-left">Updated At</th>
             </tr>
@@ -40,8 +42,21 @@ const Team = () => {
                   key={user._id}
                   className="odd:bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
+                  <td className="px-4 py-2">   <div className="relative ml-3">
+              <button  className="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                <span className="absolute -inset-1.5"></span>
+                <span className="sr-only">Open user menu</span>
+                <img
+                  src={user?.avatar || "https://cdn-icons-png.flaticon.com/128/4219/4219829.png"}
+                    alt={user?.name }
+                  className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
+                />
+              </button>
+              </div>
+              </td>
                   <td className="px-4 py-2">{user.name}</td>
                   <td className="px-4 py-2">{user.email}</td>
+                  <td className="px-4 py-2">{user.createdWith}</td>
                   <td className="px-4 py-2">
                     {new Date(user.createdAt).toLocaleString()}
                   </td>
