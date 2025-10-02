@@ -7,83 +7,60 @@ import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const allowUserInfoFallback = process.env.NODE_ENV !== "PRODUCTION";
 
 export const googleSignIn = async (req, res) => {
   try {
-    const { idToken, accessToken } = req.body;
-
-    if (!idToken && !accessToken) {
-      return res.status(400).json({ message: "Missing Google idToken or accessToken." });
+    const { idToken } = req.body;
+    if (!idToken) {
+      return res.status(400).json({ message: "Missing Google idToken." });
     }
 
-    let googleId, email, name, picture, email_verified;
+    // Verify Google ID token and extract user info
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
 
-    // 1) Verify ID token (best source)
-    if (idToken) {
-      try {
-        const ticket = await googleClient.verifyIdToken({
-          idToken,
-          audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const p = ticket.getPayload();
-        googleId = p?.sub;
-        email = p?.email;
-        email_verified = p?.email_verified;
-        name = p?.name;
-        picture = p?.picture;
-      } catch (e) {
-        // continue to fallback if allowed
-        console.warn("verifyIdToken failed:", e?.message);
-      }
+    if (!payload.email_verified) {
+      return res.status(401).json({ message: "Google email not verified." });
     }
 
-    // 2) Fallback to UserInfo if allowed and still missing email
-    if (allowUserInfoFallback && (!email || !googleId) && accessToken) {
-      const resp = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (resp.ok) {
-        const u = await resp.json();
-        googleId = googleId || u?.sub;
-        email = email || u?.email;
-        email_verified = email_verified ?? u?.email_verified;
-        name = name || u?.name;
-        picture = picture || u?.picture;
-      } else {
-        console.warn("userinfo fallback failed with status", resp.status);
-      }
-    }
+    const googleId = payload.sub;
+    const email = payload.email?.toLowerCase()?.trim();
+    const name = payload.name;
+    const picture = payload.picture;
 
     if (!email) {
-      return res.status(400).json({ message: "Google did not return an email." });
+      return res.status(400).json({ message: "Google account missing email." });
     }
 
-    const normEmail = String(email).trim().toLowerCase();
-
-    // 3) Find or create
+    // Find or create user in MongoDB
     let user = await User.findOne({ googleId });
     if (!user) {
-      user = await User.findOne({ email: normEmail });
-      if (user) {
-        if (!user.googleId && googleId) user.googleId = googleId;
-        if (!user.avatar && picture) user.avatar = picture;
-        if (email_verified) user.emailVerified = true;
-        await user.save();
-      } else {
+      user = await User.findOne({ email });
+      if (!user) {
         user = await User.create({
           name: name || "User",
-          email: normEmail,
+          email,
           googleId,
           avatar: picture,
-          emailVerified: !!email_verified,
-          createdWith: "google"
+          emailVerified: true,
+          createdWith: "google",
         });
+      } else {
+        // If found by email, update googleId if not already linked
+        if (!user.googleId) user.googleId = googleId;
+        if (!user.avatar && picture) user.avatar = picture;
+        if (!user.emailVerified) user.emailVerified = true;
+        if (user.createdWith !== "google") user.createdWith = "google";
+        await user.save();
       }
     }
 
-    // 4) Issue your app tokens + cookies
+    // Issue access and refresh tokens
     const accesstoken = generateAccessToken(user._id);
     const refreshtoken = generateRefreshToken(user._id);
 
@@ -104,10 +81,12 @@ export const googleSignIn = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    // Send minimal user info
     return res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
+      avatar: user.avatar,
     });
   } catch (err) {
     console.error("Google sign-in error:", err);
@@ -191,6 +170,7 @@ export const registerUesr = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      avatar: user.avatar,
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -248,6 +228,7 @@ export const loginUser = async (req, res) => {
             _id: findUser._id,
             name: findUser.name,
             email: findUser.email,
+            avatar: findUser.avatar,
         });
 
     } catch (error) {
@@ -338,7 +319,7 @@ export const checkAuth = async (req, res) => {
         const user = await User.findById(decoded.userId);
         if (!user) return res.status(404).json({ message: "User not found" });
 
-        res.status(200).json({ _id: user._id, name: user.name, email: user.email });
+        res.status(200).json({ _id: user._id, name: user.name, email: user.email  , avatar: user.avatar,});
     } catch (err) {
         res.status(401).json({ message: "Invalid or expired access token" });
     }

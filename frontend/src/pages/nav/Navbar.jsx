@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link , useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth/useAuthStore";
 
 const Navbar = () => {
   const [openProfile, setOpenProfile] = useState(false);
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
 
   return (
 
@@ -132,8 +133,8 @@ const Navbar = () => {
                 <span className="absolute -inset-1.5"></span>
                 <span className="sr-only">Open user menu</span>
                 <img
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                  alt=""
+                  src={user?.avatar}
+                    alt={user?.name}
                   className="size-8 rounded-full bg-gray-800 outline -outline-offset-1 outline-white/10"
                 />
               </button>
@@ -155,7 +156,7 @@ const Navbar = () => {
                   </a>
                   <button
                     onClick={logout}
-                    className="block px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"
+                    className="block cursor-pointer px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"
                   >
                     Sign out
                   </button>
