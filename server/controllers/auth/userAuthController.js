@@ -8,56 +8,82 @@ import { OAuth2Client } from "google-auth-library";
 
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const allowUserInfoFallback = process.env.NODE_ENV !== "PRODUCTION";
 
 export const googleSignIn = async (req, res) => {
   try {
-    const { idToken } = req.body; 
+    const { idToken, accessToken } = req.body;
 
-    if (!idToken) {
-      return res.status(400).json({ message: "Missing Google idToken." });
+    if (!idToken && !accessToken) {
+      return res.status(400).json({ message: "Missing Google idToken or accessToken." });
     }
 
-    // Verify token with Google
-    const ticket = await googleClient.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    let googleId, email, name, picture, email_verified;
 
-    const payload = ticket.getPayload(); // { sub, email, name, picture, email_verified, ... }
-    const { sub: googleId, email, name, picture, email_verified } = payload || {};
+    // 1) Verify ID token (best source)
+    if (idToken) {
+      try {
+        const ticket = await googleClient.verifyIdToken({
+          idToken,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const p = ticket.getPayload();
+        googleId = p?.sub;
+        email = p?.email;
+        email_verified = p?.email_verified;
+        name = p?.name;
+        picture = p?.picture;
+      } catch (e) {
+        // continue to fallback if allowed
+        console.warn("verifyIdToken failed:", e?.message);
+      }
+    }
+
+    // 2) Fallback to UserInfo if allowed and still missing email
+    if (allowUserInfoFallback && (!email || !googleId) && accessToken) {
+      const resp = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (resp.ok) {
+        const u = await resp.json();
+        googleId = googleId || u?.sub;
+        email = email || u?.email;
+        email_verified = email_verified ?? u?.email_verified;
+        name = name || u?.name;
+        picture = picture || u?.picture;
+      } else {
+        console.warn("userinfo fallback failed with status", resp.status);
+      }
+    }
 
     if (!email) {
       return res.status(400).json({ message: "Google did not return an email." });
     }
 
-    // Normalize
     const normEmail = String(email).trim().toLowerCase();
 
-    // Find by googleId first (fast path)
+    // 3) Find or create
     let user = await User.findOne({ googleId });
-
     if (!user) {
-      // Maybe user registered locally or with FB/GitHub earlier — match by email
       user = await User.findOne({ email: normEmail });
       if (user) {
-        // Link Google to existing account
-        if (!user.googleId) user.googleId = googleId;
+        if (!user.googleId && googleId) user.googleId = googleId;
         if (!user.avatar && picture) user.avatar = picture;
         if (email_verified) user.emailVerified = true;
         await user.save();
       } else {
-        // Create new Google user (no password)
         user = await User.create({
           name: name || "User",
           email: normEmail,
           googleId,
           avatar: picture,
           emailVerified: !!email_verified,
+          createdWith: "google"
         });
       }
     }
 
-    // Issue tokens + cookies (same style as your local flow)
+    // 4) Issue your app tokens + cookies
     const accesstoken = generateAccessToken(user._id);
     const refreshtoken = generateRefreshToken(user._id);
 
@@ -135,6 +161,7 @@ export const registerUesr = async (req, res) => {
         email,
         password: hashedPassword,
         emailVerified: false, // local users start unverified (optional)
+        createdWith: "local"
       });
     }
 

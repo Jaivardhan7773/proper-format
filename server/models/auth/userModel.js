@@ -28,6 +28,11 @@ const uesrSchema = new mongoose.Schema({
 
     avatar: { type: String },
     emailVerified: { type: Boolean, default: false },
+    createdWith: {
+  type: String,
+  enum: ["local", "google", "github", "facebook"],
+  default: "local", // sensible default for most
+},
 }, { versionKey: false, timestamps: true });
 
 const User = mongoose.model("users", uesrSchema);
