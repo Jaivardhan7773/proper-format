@@ -13,7 +13,7 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // only handle 401s and prevent infinite loop
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 422 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
