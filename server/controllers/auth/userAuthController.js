@@ -96,7 +96,7 @@ export const googleSignIn = async (req, res) => {
 
 
 export const registerUesr = async (req, res) => {
- const errors = validationResult(req);
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ error: errors.array() });
   }
@@ -179,150 +179,157 @@ export const registerUesr = async (req, res) => {
 }
 
 export const loginUser = async (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ error: errors.array() })
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ error: errors.array() })
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    const findUser = await User.findOne({ email }).select('+password +refreshToken');
+
+    if (!findUser) {
+      return res.status(400).json({ message: "Invalid credentials" });
+
     }
 
-    const { email, password } = req.body;
 
-    try {
-        const findUser = await User.findOne({ email });
-
-        if (!findUser) {
-            return res.status(404).json({
-                message: `cannot find ${email}`
-            })
-        }
-
-        const isMatch = await bcrypt.compare(password, findUser.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Incorrect password" });
-        }
-
-
-        const accessToken = generateAccessToken(findUser._id);
-        const refreshToken = generateRefreshToken(findUser._id);
-
-        // Save refresh token in DB
-        findUser.refreshToken = refreshToken;
-
-        await findUser.save();
-
-        // Send tokens as cookies
-        res.cookie("accesstoken", accessToken, {
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-            secure: process.env.NODE_ENV !== "DEVELOPMENT",
-            maxAge: 2 * 60 * 1000, // 15 min
-        });
-
-        res.cookie("refreshtoken", refreshToken, {
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-            secure: process.env.NODE_ENV !== "DEVELOPMENT",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-
-        res.status(200).json({
-            _id: findUser._id,
-            name: findUser.name,
-            email: findUser.email,
-            avatar: findUser.avatar,
-        });
-
-    } catch (error) {
-        return res.status(500).json({ message: error })
+        if (!findUser.password) {
+      return res.status(400).json({ message: "Please set a password to log in with email." });
     }
+
+
+   const isMatch = await bcrypt.compare(password, findUser.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+
+    const accessToken = generateAccessToken(findUser._id);
+    const refreshToken = generateRefreshToken(findUser._id);
+
+    // Save refresh token in DB
+    findUser.refreshToken = refreshToken;
+
+    await findUser.save();
+
+    // Send tokens as cookies
+    res.cookie("accesstoken", accessToken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 2 * 60 * 1000, // 15 min
+    });
+
+    res.cookie("refreshtoken", refreshToken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.status(200).json({
+      _id: findUser._id,
+      name: findUser.name,
+      email: findUser.email,
+      avatar: findUser.avatar,
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Internal server error" });
+
+  }
 }
 
 export const refreshedToken = async (req, res) => {
-    const { refreshtoken } = req.cookies;
+  const { refreshtoken } = req.cookies;
 
 
-    if (!refreshtoken) {
-        return res.status(401).json({ message: "no refresh token provided" });
+  if (!refreshtoken) {
+    return res.status(401).json({ message: "no refresh token provided" });
+  }
+
+  try {
+
+    const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
+
+    const user = await User.findById(decoded.userId)
+
+    if (!user || user.refreshToken !== refreshtoken) {
+      return res.status(403).json({ message: "Invalid refresh token" })
     }
 
-    try {
+    const newAccesstoken = generateAccessToken(user._id);
 
-        const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
+    res.cookie("accesstoken", newAccesstoken, {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+      secure: process.env.NODE_ENV !== "DEVELOPMENT",
+      maxAge: 15 * 60 * 1000,
+    });
 
-        const user = await User.findById(decoded.userId)
-
-        if (!user || user.refreshToken !== refreshtoken) {
-            return res.status(403).json({ message: "Invalid refresh token" })
-        }
-
-        const newAccesstoken = generateAccessToken(user._id);
-
-        res.cookie("accesstoken", newAccesstoken, {
-            httpOnly: true,
-            sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-            secure: process.env.NODE_ENV !== "DEVELOPMENT",
-            maxAge: 15 * 60 * 1000,
-        });
-
-        res.status(200).json({ message: "cookie resfreshed successfully" })
-    } catch (error) {
-        res.status(403).json({ message: "Invalid or expired refresh token" });
-    }
+    res.status(200).json({ message: "cookie resfreshed successfully" })
+    console.log("cookie resfreshed successfully")
+  } catch (error) {
+    res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
 }
 
 export const logoutUser = async (req, res) => {
 
-    const { refreshtoken } = req.cookies;
-    let result = null;
-    // console.log("Cookies on logout:", req.cookies);
+  const { refreshtoken } = req.cookies;
+  let result = null;
+  // console.log("Cookies on logout:", req.cookies);
 
-    if (refreshtoken) {
-        try {
-            const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
+  if (refreshtoken) {
+    try {
+      const decoded = jwt.verify(refreshtoken, process.env.JWT_REFRESH_SECRET);
 
-            const userId = decoded.userId || decoded._id || decoded.id;
+      const userId = decoded.userId || decoded._id || decoded.id;
 
-            if (userId) {
-                result = await User.findByIdAndUpdate(userId, { $unset: { refreshToken: "" } });
-            } else {
-                console.log("User ID not found in token payload");
-            }
+      if (userId) {
+        result = await User.findByIdAndUpdate(userId, { $unset: { refreshToken: "" } });
+      } else {
+        console.log("User ID not found in token payload");
+      }
 
-        } catch (error) {
-            console.error("Error verifying token:", error);
-            return res.status(401).json({ message: "Invalid refresh token" });
-        }
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      return res.status(401).json({ message: "Invalid refresh token" });
     }
+  }
 
-    res.clearCookie("accesstoken", {
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-        secure: process.env.NODE_ENV !== "DEVELOPMENT",
-    });
+  res.clearCookie("accesstoken", {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+    secure: process.env.NODE_ENV !== "DEVELOPMENT",
+  });
 
-    res.clearCookie("refreshtoken", {
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
-        secure: process.env.NODE_ENV !== "DEVELOPMENT",
-    });
+  res.clearCookie("refreshtoken", {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
+    secure: process.env.NODE_ENV !== "DEVELOPMENT",
+  });
 
-    res.status(200).json({ message: `email ${result?.email || ""} logged out successfully` });
+  res.status(200).json({ message: `email ${result?.email || ""} logged out successfully` });
 }
 
 export const checkAuth = async (req, res) => {
 
-    const accessToken = req.cookies.accesstoken;
+  const accessToken = req.cookies.accesstoken;
 
-    if (!accessToken) return res.status(401).json({ message: "Not logged in" });
+  if (!accessToken) return res.status(422).json({ message: "Not logged in" });
 
-    try {
-        const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
-        const user = await User.findById(decoded.userId);
-        if (!user) return res.status(404).json({ message: "User not found" });
+  try {
+    const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-        res.status(200).json({ _id: user._id, name: user.name, email: user.email  , avatar: user.avatar,});
-    } catch (err) {
-        res.status(401).json({ message: "Invalid or expired access token" });
-    }
+    res.status(200).json({ _id: user._id, name: user.name, email: user.email, avatar: user.avatar, });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid or expired access token" });
+  }
 
 
 }
