@@ -1,6 +1,7 @@
 import { useState , useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth/useAuthStore";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -9,16 +10,7 @@ const Login = () => {
   const navigate = useNavigate();
 
 
-    async function handleCredentialResponse(response) {
-    const idToken = response.credential;
 
-    try {
-      await Googlelogin(idToken);
-      console.log("Logged in!");
-    } catch (err) {
-      console.error("Login failed", err);
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,7 +84,26 @@ const Login = () => {
               </div>
             </div>
 
-                <div id="google-signin-button"></div>
+                        <div className="space-y-4">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  // credentialResponse.credential = JWT ID token
+                  await Googlelogin(credentialResponse.credential);
+                  navigate("/");
+                } catch (err) {
+                  console.error("Google login failed", err);
+                }
+              }}
+              onError={() => {
+                console.error("Google Login Error");
+              }}
+              // optional shape:
+              // theme="outline"
+              // size="large"
+              // text="continue_with"
+              // logo_alignment="left"
+            /> </div>
 
             <div>
               <button disabled={loading} type="submit" className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer">
