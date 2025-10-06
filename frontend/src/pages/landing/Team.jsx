@@ -5,7 +5,9 @@ import { AdminStore } from "../../store/other/adminStore"
 const Team = () => {
   const { allUsers, isLoading, fetchUsers } = AdminStore();
   useEffect(() => {
-    fetchUsers()
+    if(allUsers.length === 0){
+      fetchUsers()
+    }
   }, [fetchUsers])
 
   if (isLoading) {
