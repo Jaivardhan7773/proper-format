@@ -142,12 +142,13 @@ const Navbar = () => {
               {/* Dropdown Menu */}
               {openProfile && (
                 <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 outline -outline-offset-1 outline-white/10 transition">
-                  <a
-                    href="#"
+                  <Link
+                    to={"/profile"}
                     className="block px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"
+             
                   >
                     {user?.name || "wtf"}
-                  </a>
+                  </Link>
                   <a
                     href="#"
                     className="block px-4 py-2 text-sm text-gray-300 focus:bg-white/5 focus:outline-hidden"

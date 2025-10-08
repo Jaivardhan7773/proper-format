@@ -21,31 +21,6 @@ const Login = () => {
   }
 
 
-    useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-
-    script.onload = () => {
-    
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse
-      });
-
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-signin-button"),
-        { theme: "outline", size: "large" }
-      );
-    };
-
-    return () => {
-     
-      document.body.removeChild(script);
-    };
-  }, []); 
 
   return (
     <>
@@ -98,11 +73,6 @@ const Login = () => {
               onError={() => {
                 console.error("Google Login Error");
               }}
-              // optional shape:
-              // theme="outline"
-              // size="large"
-              // text="continue_with"
-              // logo_alignment="left"
             /> </div>
 
             <div>
