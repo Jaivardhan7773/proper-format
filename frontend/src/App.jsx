@@ -8,13 +8,21 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 function App() {
 
-  const { checkAuth , user } = useAuthStore();
+  const { checkAuth, user, isCheckingAuth } = useAuthStore();
 
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth])
   console.log(user)
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex  justify-center items-center min-h-dvh bg-transparent">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500 border-solid"></div>
+      </div>
+    );
+  }
 
 
 
