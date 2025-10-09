@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/auth/useAuthStore";
+import { GoogleLogin } from "@react-oauth/google";
+
 
 const SignUp = () => {
   const [name, setName] = useState('')
@@ -63,6 +65,8 @@ const SignUp = () => {
               </div>
             </div>
 
+                               
+
             <div>
               <button type="submit" disabled={loading} className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer">
                 {loading ? "Signing up..." : "Sign up"}
@@ -70,6 +74,24 @@ const SignUp = () => {
               {error && <p style={{ color: "red" }}>{error}</p>}
             </div>
           </form>
+
+          <p className="my-5 text-center text-white">Or</p>
+
+          <div className="space-y-4">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  // credentialResponse.credential = JWT ID token
+                  await Googlelogin(credentialResponse.credential);
+                  navigate("/");
+                } catch (err) {
+                  console.error("Google login failed", err);
+                }
+              }}
+              onError={() => {
+                console.error("Google Login Error");
+              }}
+            /> </div>
 
           <p className="mt-10 text-center text-sm/6 text-gray-400">
             Already a member?
