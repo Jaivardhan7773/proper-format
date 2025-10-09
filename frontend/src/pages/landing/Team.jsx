@@ -20,7 +20,7 @@ const Team = () => {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+        <table className="min-w-full px-5 bg-white border border-gray-300 rounded-lg shadow-lg">
           <thead className="bg-blue-500 text-white">
             <tr>
               <th className="px-4 py-2 text-left">Profile</th>

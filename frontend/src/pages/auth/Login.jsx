@@ -59,7 +59,18 @@ const Login = () => {
               </div>
             </div>
 
-                        <div className="space-y-4">
+
+            <div>
+              <button disabled={loading} type="submit" className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer">
+                {loading ? "Logging in..." : "Login"}
+              </button>
+              {error && <p style={{ color: "red" }}>{error}</p>}
+            </div>
+          </form>
+
+            <p className="my-5 text-center text-white">Or</p>
+
+          <div className="space-y-4">
             <GoogleLogin
               onSuccess={async (credentialResponse) => {
                 try {
@@ -74,14 +85,6 @@ const Login = () => {
                 console.error("Google Login Error");
               }}
             /> </div>
-
-            <div>
-              <button disabled={loading} type="submit" className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 cursor-pointer">
-                {loading ? "Logging in..." : "Login"}
-              </button>
-              {error && <p style={{ color: "red" }}>{error}</p>}
-            </div>
-          </form>
 
           <p className="mt-10 text-center text-sm/6 text-gray-400">
             Not a member?

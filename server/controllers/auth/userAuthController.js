@@ -94,7 +94,6 @@ export const googleSignIn = async (req, res) => {
   }
 };
 
-
 export const registerUesr = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -176,7 +175,7 @@ export const registerUesr = async (req, res) => {
     console.error("Register error:", error);
     res.status(500).json({ message: "Server Error" });
   }
-}
+};
 
 export const loginUser = async (req, res) => {
   const errors = validationResult(req)
@@ -190,20 +189,21 @@ export const loginUser = async (req, res) => {
     const findUser = await User.findOne({ email }).select('+password +refreshToken');
 
     if (!findUser) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid credentials oby" });
 
     }
 
 
-        if (!findUser.password) {
-      return res.status(400).json({ message: "Please set a password to log in with email." });
-    }
+
+if (!findUser.password) return res.status(400).json({ message: "This account uses Google sign-in. Please log in with Google." });
+
+
 
 
    const isMatch = await bcrypt.compare(password, findUser.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
-    }
+      } 
 
 
     const accessToken = generateAccessToken(findUser._id);
@@ -240,7 +240,7 @@ export const loginUser = async (req, res) => {
     return res.status(500).json({ message: error.message || "Internal server error" });
 
   }
-}
+};
 
 export const refreshedToken = async (req, res) => {
   const { refreshtoken } = req.cookies;
@@ -313,7 +313,7 @@ export const logoutUser = async (req, res) => {
   });
 
   res.status(200).json({ message: `email ${result?.email || ""} logged out successfully` });
-}
+};
 
 export const checkAuth = async (req, res) => {
 
@@ -332,4 +332,6 @@ export const checkAuth = async (req, res) => {
   }
 
 
-}
+};
+
+
